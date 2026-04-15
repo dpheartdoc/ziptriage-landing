@@ -1,0 +1,25 @@
+{
+  "routes": [
+    {
+      "route": "/investors",
+      "rewrite": "/investors.html"
+    },
+    {
+      "route": "/clinics",
+      "rewrite": "/clinics.html"
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 404
+    }
+  },
+  "globalHeaders": {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload"
+  }
+}

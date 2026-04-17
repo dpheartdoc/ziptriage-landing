@@ -1,3 +1,4 @@
+import html
 import json
 import logging
 import os
@@ -7,6 +8,9 @@ import azure.functions as func
 from azure.communication.email import EmailClient
 
 logger = logging.getLogger(__name__)
+
+MAX_SHORT_LEN = 200
+MAX_MESSAGE_LEN = 5000
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -44,6 +48,23 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
         )
 
+    if (
+        len(name) > MAX_SHORT_LEN
+        or len(email) > MAX_SHORT_LEN
+        or len(page) > MAX_SHORT_LEN
+        or len(message) > MAX_MESSAGE_LEN
+    ):
+        return func.HttpResponse(
+            json.dumps({"error": "Input too long"}),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    name_h = html.escape(name, quote=True)
+    email_h = html.escape(email, quote=True)
+    page_h = html.escape(page, quote=True)
+    message_h = html.escape(message, quote=True).replace("\n", "<br>")
+
     # Send email via Azure Communication Services
     connection_string = os.environ.get("ACS_CONNECTION_STRING")
     sender = os.environ.get("ACS_EMAIL_FROM")
@@ -71,11 +92,11 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 ),
                 "html": (
                     f"<h2>New contact from ZipTriage website</h2>"
-                    f"<p><strong>Name:</strong> {name}</p>"
-                    f"<p><strong>Email:</strong> <a href='mailto:{email}'>{email}</a></p>"
-                    f"<p><strong>Page:</strong> {page}</p>"
+                    f"<p><strong>Name:</strong> {name_h}</p>"
+                    f"<p><strong>Email:</strong> <a href=\"mailto:{email_h}\">{email_h}</a></p>"
+                    f"<p><strong>Page:</strong> {page_h}</p>"
                     f"<hr>"
-                    f"<p>{message}</p>"
+                    f"<p>{message_h}</p>"
                 ),
             },
             "recipients": {
